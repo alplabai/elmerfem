@@ -646,7 +646,11 @@ omstart:
 	  }
 	  
 	  if( ( pstr = strstr(line,"ELSET=")) ) {
-	    bodyid++;	    	      
+	    bodyid++;
+	    if(bodyid >= MAXBODIES) {
+	      printf("LoadAbaqusInput: too many bodies (>= %d)\n", MAXBODIES);
+	      goto end;
+	    }
 	    if(allocated) {
 	      if(info) printf("Loading elements to body %d from ELSET %s",bodyid,pstr+6);
 	      sscanf(pstr+6,"%s",entityname);
@@ -2705,6 +2709,7 @@ int LoadTriangleInput(struct FemType *data,struct BoundaryType *bound,
   jmax = 0;
   jmin = noknots;
   in = fopen(nodefile,"r");
+  if(!in) { printf("LoadTriangleInput: could not open node file %s\n", nodefile); return(1); }
   GETLINE;
   for(i=1; i <= noknots; i++) {
     GETLINE;
