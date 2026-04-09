@@ -83,17 +83,6 @@ Solver 1
   Linear System Solver = "Direct"
   Linear System Direct Method = Umfpack
 
-!  Linear System Scaling = Logical True
-!  Linear System Symmetric = Logical True
-!  Linear System Solver = string "Iterative"
-!  Linear System Convergence Tolerance = real 1e-8
-!  Linear System Iterative Method = BiCGStabl
-!  BiCGStabl Polynomial Degree = 2
-!  Linear System Residual Output = integer 1
-!  Linear System Max Iterations = integer 2000
-!  Linear System Preconditioning = ILU2
-!  Linear System Residual Output = 50
-
 ! This is special keyword for this solver
 ! We use the estimated beta^2 as the shift. 
   Eigen System Shift Automatic = Logical True

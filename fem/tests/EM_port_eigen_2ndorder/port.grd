@@ -25,8 +25,8 @@ Decimals = 8
 Triangles = True
 Element Degree = 2
 Element Innernodes = True
-Element Divisions 1 = 1 80 80 1
-Element Divisions 2 = 1 80 1
+Element Divisions 1 = 1 40 40 1
+Element Divisions 2 = 1 40 1
 Element Ratios 1 = 1 1 1 1
 Element Ratios 2 = 1 1 1
 End

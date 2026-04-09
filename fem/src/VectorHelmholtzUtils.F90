@@ -224,7 +224,7 @@
      TYPE(Solver_t), POINTER :: EigenSolver
      TYPE(Variable_t), POINTER :: EigenVar
      REAL(KIND=dp), ALLOCATABLE :: Re_Eigenf(:), Im_Eigenf(:)     
-     INTEGER :: EigenInd, PortDirection, PortTypeIndex, p, n, nd, m
+     INTEGER :: EigenInd, PortDirection, PortTypeIndex, p, n, nd, m, i, j
      INTEGER, ALLOCATABLE :: DofInds(:)
      COMPLEX(KIND=dp) :: PortZ, PortBeta
      REAL(KIND=dp) :: Omega, PortLength, PortScale, PortCenter(3), mu0inv, muinv
@@ -301,9 +301,19 @@
          n = Element % Type % NumberOfNodes
          m = mGetElementDOFs( DofInds, Element, USolver = EigenSolver )
          nd = m - n
-         
-         Re_eigenf(1:m) = REAL( EigenVar % EigenVectors(EigenInd,EigenVar % Perm(DofInds)) )
-         Im_eigenf(1:m) = AIMAG( EigenVar % EigenVectors(EigenInd,EigenVar % Perm(DofInds)) )         
+
+         Re_eigenf(1:m) = 0.0_dp
+         Im_eigenf(1:m) = 0.0_dp
+         DO i = 1, m
+           j = DofInds(i)
+           IF (j > 0 .AND. j <= SIZE(EigenVar % Perm)) THEN
+             j = EigenVar % Perm(j)
+             IF (j > 0 .AND. j <= SIZE(EigenVar % EigenVectors, 2)) THEN
+               Re_eigenf(i) = REAL(EigenVar % EigenVectors(EigenInd, j))
+               Im_eigenf(i) = AIMAG(EigenVar % EigenVectors(EigenInd, j))
+             END IF
+           END IF
+         END DO         
        ELSE
          CALL Fatal(Caller,'Uncoded port type: '//I2S(PortTypeIndex))        
        END IF
