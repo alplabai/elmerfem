@@ -51,6 +51,7 @@ int MemoryUsage()
     printf("Memory used real %d %d %d int %d %d %d\n",
 	   nfloat,cumnfloat,locnfloat,nint,cumnint,locnint);
   locnfloat = locnint = 0;
+  return 0;
 }
 #endif
 
@@ -563,7 +564,7 @@ int Maximi(Real *vector,int first,int last)
   Real max;
   int i,maxi;
 
-  maxi=-1;
+  maxi=first;
   max=vector[first];
   for(i=first+1;i<=last;i++) 
     if(max<vector[i]) 
