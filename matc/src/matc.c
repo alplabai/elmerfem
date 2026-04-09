@@ -482,8 +482,12 @@ int dogets(char *buff, char *prompt)
          switch(*p)
          {
            case SYSTEM:
+#ifdef ELMER_DISABLE_SHELL_EXEC
+             PrintOut("shell execution disabled in this build.\n");
+#else
              system(p + 1);
              PrintOut("\n");
+#endif
              *p = '\0'; p--;
            break;
          }

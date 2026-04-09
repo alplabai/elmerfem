@@ -646,7 +646,11 @@ omstart:
 	  }
 	  
 	  if( ( pstr = strstr(line,"ELSET=")) ) {
-	    bodyid++;	    	      
+	    bodyid++;
+	    if(bodyid >= MAXBODIES) {
+	      printf("LoadAbaqusInput: too many bodies (>= %d)\n", MAXBODIES);
+	      goto end;
+	    }
 	    if(allocated) {
 	      if(info) printf("Loading elements to body %d from ELSET %s",bodyid,pstr+6);
 	      sscanf(pstr+6,"%s",entityname);

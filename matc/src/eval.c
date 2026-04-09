@@ -444,6 +444,9 @@ VARIABLE *evalclause(CLAUSE *root)
       ************************************************************/
       case systemcall:
       {
+#ifdef ELMER_DISABLE_SHELL_EXEC
+           error( "systemcall: shell execution disabled in this build.\n" );
+#else
 #if defined(WIN32) || defined(MINGW32)
            FILE *fp = _popen( SDATA(root->this), "r" );
 #else
@@ -461,6 +464,7 @@ VARIABLE *evalclause(CLAUSE *root)
 #else
            pclose( fp );
 #endif
+#endif /* ELMER_DISABLE_SHELL_EXEC */
       }
       break;
       /************************************************************

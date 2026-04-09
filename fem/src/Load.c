@@ -162,7 +162,11 @@ void STDCALLBULL FC_FUNC(makedirectory,MAKEDIRECTORY)
   -------------------------------------------------------------------------*/
 void STDCALLBULL FC_FUNC(systemc,SYSTEMC) ( char *str )
 {
+#ifdef ELMER_DISABLE_SHELL_EXEC
+   fprintf(stderr, "SYSTEMC: shell execution disabled in this build.\n");
+#else
    system( str );
+#endif
 }
 
 /*--------------------------------------------------------------------------
