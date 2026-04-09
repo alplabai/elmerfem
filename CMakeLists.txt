@@ -112,6 +112,10 @@ SET(WITH_Zoltan FALSE CACHE BOOL "Link in Zoltan mesh repartitioning library.")
 SET(USE_SYSTEM_ZOLTAN FALSE CACHE BOOL "Use system Zoltan library")
 
 SET(INCLUDE_ELMER_MODULES "" CACHE STRING "Semicolon separated list of solver modules to be compiled. If empty compile all.")
+SET(ELMER_DISABLE_SHELL_EXEC FALSE CACHE BOOL "Disable system()/popen() calls in MATC and Load.c for embedded/sandboxed use.")
+IF(ELMER_DISABLE_SHELL_EXEC)
+  ADD_DEFINITIONS(-DELMER_DISABLE_SHELL_EXEC)
+ENDIF()
 
 # Let user select if the contiguous attribute is used or not
 SET(USE_CONTIGUOUS FALSE CACHE BOOL "Use contiguous attribute")

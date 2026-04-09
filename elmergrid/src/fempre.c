@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
   InitGrid(grids);
   info = TRUE;
 
-  if(argc <= 1) {
-    errorstat = LoadCommands(argv[1],&eg,grids,argc-1,info);     
+  if(argc == 1) {
+    errorstat = LoadCommands(NULL,&eg,grids,0,info);
     if(errorstat) {
       Instructions();
       Goodbye();
