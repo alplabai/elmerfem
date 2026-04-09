@@ -24,6 +24,7 @@ cholmod STDCALLBULL *FC_FUNC_(cholmod_ffactorize,CHOLMOD_FFACTORIZE)(int *n,int 
   cholmod *handle;
 
   handle = (cholmod *)calloc(sizeof(cholmod),1);
+  if (!handle) return NULL;
 
   cholmod_l_start(&handle->c);
 
@@ -36,8 +37,12 @@ cholmod STDCALLBULL *FC_FUNC_(cholmod_ffactorize,CHOLMOD_FFACTORIZE)(int *n,int 
   if(*cmplx) {
     rr = (int64_t *)malloc(sizeof(int64_t)*(m+1));
     ri = (int64_t *)malloc(sizeof(int64_t)*rows[*n]/4);
-
     rvals = (double *)malloc(sizeof(double)*rows[*n]/2);
+    if (!rr || !ri || !rvals) {
+      free(rr); free(ri); free(rvals);
+      cholmod_l_finish(&handle->c); free(handle);
+      return NULL;
+    }
 
     j = 0; l=0;
     for(i=0; i<*n; i+=2 )
@@ -61,6 +66,11 @@ cholmod STDCALLBULL *FC_FUNC_(cholmod_ffactorize,CHOLMOD_FFACTORIZE)(int *n,int 
   } else {
     rr = (int64_t *)malloc(sizeof(int64_t)*(*n+1));
     ri = (int64_t *)malloc(sizeof(int64_t)*rows[*n]);
+    if (!rr || !ri) {
+      free(rr); free(ri);
+      cholmod_l_finish(&handle->c); free(handle);
+      return NULL;
+    }
 
     for(i=0; i<*n+1; i++ ) rr[i]=rows[i];
     for(i=0; i<rows[*n]; i++ ) ri[i]=cols[i];
@@ -125,10 +135,16 @@ cholmod STDCALLBULL *FC_FUNC_(spqr_ffactorize,SPQR_FFACTORIZE)(int *n,int *rows,
   cholmod_dense *dx, *db, *dr;
 
   handle = (cholmod *)calloc(sizeof(cholmod),1);
+  if (!handle) return NULL;
   cholmod_l_start(&handle->c);
 
   pp=(long int*)malloc(sizeof(long int)*(*n+1));
   ii=(long int*)malloc(sizeof(long int)*rows[*n]);
+  if (!pp || !ii) {
+    free(pp); free(ii);
+    cholmod_l_finish(&handle->c); free(handle);
+    return NULL;
+  }
   for(j=0;j<=*n;j++) pp[j]=rows[j];
   for(j=0;j<rows[*n];j++) ii[j]=cols[j];
 
@@ -154,7 +170,15 @@ cholmod STDCALLBULL *FC_FUNC_(spqr_ffactorize,SPQR_FFACTORIZE)(int *n,int *rows,
   bb=db->x;
 
   nsize=*n-rank;
-  handle->z=(double*)malloc(sizeof(double)*(*n)*nsize);
+  if (nsize > 0) {
+    handle->z=(double*)malloc(sizeof(double)*(*n)*nsize);
+    if (!handle->z) {
+      fprintf(stderr, "spqr_ffactorize: malloc failed for null space vectors\n");
+      nsize = 0;
+    }
+  } else {
+    handle->z = NULL;
+  }
 
   j=0;
   for(i=*n-nsize;i<*n;i++)
