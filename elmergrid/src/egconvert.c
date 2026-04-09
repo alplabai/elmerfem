@@ -2709,6 +2709,7 @@ int LoadTriangleInput(struct FemType *data,struct BoundaryType *bound,
   jmax = 0;
   jmin = noknots;
   in = fopen(nodefile,"r");
+  if(!in) { printf("LoadAbaqusInput: could not open node file %s\n", nodefile); goto end; }
   GETLINE;
   for(i=1; i <= noknots; i++) {
     GETLINE;
