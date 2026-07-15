@@ -273,8 +273,12 @@ SUBROUTINE EMPortSolver(Model, Solver, dt, Transient)
     Solver % Matrix => Null()
 
     ! Let's store the original permutation vector.
+    ! SavePerm has the SAVE attribute and is normally deallocated at the end of
+    ! this routine. Guard re-entry after a path that did not reach that point,
+    ! where ALLOCATE on an allocated variable is a runtime error.
+    IF( ALLOCATED(SavePerm) ) DEALLOCATE(SavePerm)
     ALLOCATE( SavePerm(SIZE(EMVar % Perm)))
-    SavePerm = EMVar % Perm     
+    SavePerm = EMVar % Perm
 
     ! Allocate a collector for the several BCs
     n = SIZE(EMVar % EigenVectors,1)
@@ -391,6 +395,13 @@ SUBROUTINE EMPortSolver(Model, Solver, dt, Transient)
     ! Solve the eigenmodes
 
     Norm = DefaultSolve()
+
+    ! "Eigenfunction Index" is user-given and may exceed the number of modes
+    ! actually computed. Fail loudly rather than read past EigenValues.
+    IF( ModeIndex < 1 .OR. ModeIndex > SIZE(Solver % Variable % EigenValues) ) THEN
+      CALL Fatal(Caller,'"Eigenfunction Index" '//I2S(ModeIndex)//' out of range [1,'// &
+          I2S(SIZE(Solver % Variable % EigenValues))//']')
+    END IF
 
     Beta = SQRT(-Solver % Variable % EigenValues(ModeIndex))
     WRITE(Message,'(A,2ES15.6)') 'Propagation constant beta: ',REAL(Beta),AIMAG(Beta)
