@@ -233,8 +233,13 @@
      REAL(KIND=dp), OPTIONAL :: Basis(:), dBasisdx(:,:), WBasis(:,:)
 
      LOGICAL :: Found, UseV
-     TYPE(Solver_t), POINTER :: EigenSolver
-     TYPE(Variable_t), POINTER :: EigenVar, PotVar
+     ! Default initialisation gives these the SAVE attribute, which this
+     ! routine already relies on: they are set in the Phase 1 call and read in
+     ! the Phase 2 call. It also gives them a defined association status, so
+     ! the ASSOCIATED tests below are well-defined on the first entry.
+     TYPE(Solver_t), POINTER :: EigenSolver => NULL()
+     TYPE(Variable_t), POINTER :: EigenVar => NULL()
+     TYPE(Variable_t), POINTER :: PotVar
      REAL(KIND=dp), ALLOCATABLE :: Re_Eigenf(:), Im_Eigenf(:), ParentBasis(:)
      INTEGER :: EigenInd, PortDirection, PortTypeIndex, p, n, nd, m, i, ndofs, np
      INTEGER, ALLOCATABLE :: DofInds(:)
@@ -332,6 +337,23 @@
        ELSE IF( PortTypeIndex == 3 ) THEN  ! eigenmode
          PortBeta = ListGetElementReal( PortBeta_h, Element = Element )
          EigenInd = MAX(1,ListGetElementInteger(EigenInd_h, Element, Found))
+
+         ! Port type "eigenmode" requires "Eigensolver Index" to have named a
+         ! solver in the Phase 1 call. Without it both pointers are null here
+         ! and the dereferences below would crash.
+         IF( .NOT. ASSOCIATED(EigenSolver) ) THEN
+           CALL Fatal(Caller,'Port type "eigenmode" requires a valid "Eigensolver Index"')
+         END IF
+         IF( .NOT. ASSOCIATED(EigenVar) ) THEN
+           CALL Fatal(Caller,'Eigensolver has no variable associated')
+         END IF
+
+         ! "Eigenfunction Index" is user-given and indexes the first dimension
+         ! of EigenVectors.
+         IF( EigenInd > SIZE(EigenVar % EigenVectors,1) ) THEN
+           CALL Fatal(Caller,'"Eigenfunction Index" '//I2S(EigenInd)//' out of range [1,'// &
+               I2S(SIZE(EigenVar % EigenVectors,1))//']')
+         END IF
 
          n = Element % Type % NumberOfNodes
          ndofs = MAXVAL(EigenSolver % Def_Dofs(Element % TYPE % ElementCode / 100,:,1))
