@@ -339,9 +339,18 @@
          
          m = mGetElementDOFs( DofInds, Element, USolver = EigenSolver )
          nd = m - np
-         
+
+         ! A zero Perm entry means the port DOF is absent from the eigensolver's
+         ! permutation, which would index EigenVectors at 0. That is a setup
+         ! error: fail loudly rather than read out of bounds or fill in zeroes,
+         ! which would silently yield a wrong eigenmode.
+         IF( ANY( EigenVar % Perm(DofInds(1:m)) <= 0 ) ) THEN
+           CALL Fatal(Caller,'Port DOF missing from eigensolver permutation for element '//&
+               I2S(Element % ElementIndex)//'; check that the eigensolver covers the port boundary')
+         END IF
+
          Re_eigenf(1:m) = REAL( EigenVar % EigenVectors(EigenInd,EigenVar % Perm(DofInds(1:m))) )
-         Im_eigenf(1:m) = AIMAG( EigenVar % EigenVectors(EigenInd,EigenVar % Perm(DofInds(1:m))) )         
+         Im_eigenf(1:m) = AIMAG( EigenVar % EigenVectors(EigenInd,EigenVar % Perm(DofInds(1:m))) )
        ELSE IF( PortTypeIndex == 4 ) THEN
          Parent => Element % BoundaryInfo % Left
          IF(.NOT. ASSOCIATED(Parent)) THEN
