@@ -227,7 +227,10 @@ static void STDCALLBULL fortranMangle(char *orig, char *mangled)
 {
   int uscore, i;
 
-  strcpy( mangled, orig );
+  /* mangled is MAX_PATH_LEN; reserve room for up to two appended underscores
+     and the terminator, since the mangling below may add them. */
+  strncpy( mangled, orig, MAX_PATH_LEN - 3 );
+  mangled[MAX_PATH_LEN - 3] = '\0';
 
   if(ELMER_LINKTYP == 1 || ELMER_LINKTYP == 3 || ELMER_LINKTYP == 4)
   {
@@ -278,12 +281,13 @@ static void STDCALLBULL append_path(char *path1, char *path2)
     size_t len1;
 
     len1 = strnlen(path1, 2*MAX_PATH_LEN);
+    /* An empty path1 would index path1[-1] below. */
 #if defined(WIN32) || defined(MINGW)
-    if (path1[len1-1] != '\\') {
+    if (len1 == 0 || path1[len1-1] != '\\') {
         safe_strncat(path1, "\\", 2*MAX_PATH_LEN);
     }
 #else
-    if (path1[len1-1] != '/') {
+    if (len1 == 0 || path1[len1-1] != '/') {
         safe_strncat(path1, "/", 2*MAX_PATH_LEN);
     }
 #endif
@@ -419,9 +423,13 @@ void *STDCALLBULL FC_FUNC(loadfunction,LOADFUNCTION) ( int *Quiet, int *abort_no
       } else {
 #if defined(WIN32) || defined(MINGW32)
 	/* Should not get here unless WIN32 implements DLOPEN_API */
-	GetModuleFileName(NULL, appPath, MAX_PATH_LEN);
+	if (GetModuleFileName(NULL, appPath, MAX_PATH_LEN) == 0) {
+	  appPath[0] = '.'; appPath[1] = '\0';
+	}
 	exeName = strrchr(appPath, '\\');
-	n = (int)(exeName - appPath);
+	/* No separator: subtracting from a null exeName is undefined. */
+	if(exeName == NULL) n = 0;
+	else n = (int)(exeName - appPath);
 	if(n < 0) n = 0;
 	if(n >= MAX_PATH_LEN) n = MAX_PATH_LEN - 1;
 	safe_strncat(ElmerLib, ELMER_PATH_SEPARATOR, 2*MAX_PATH_LEN);
