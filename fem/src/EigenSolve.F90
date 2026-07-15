@@ -1665,7 +1665,7 @@ END SUBROUTINE CheckResidualsComplex
          CALL Error( Caller, 'Lumped matrixes are not allowed' )
       END IF
 
-      Params = Solver % Values
+      Params => Solver % Values
       IF (  ListGetString( Params, 'Linear System Solver', Stat ) == 'direct' ) THEN
         CALL Error( Caller, 'Direct solver is not allowed' )
       END IF
