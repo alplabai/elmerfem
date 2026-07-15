@@ -186,6 +186,11 @@ cholmod STDCALLBULL *FC_FUNC_(spqr_ffactorize,SPQR_FFACTORIZE)(int *n,int *rows,
      bb[i]=1;
      dr=SuiteSparseQR_C_qmult(SPQR_QX,handle->qr,db,&handle->c);
      bb[i]=0;
+     if (!dr) {
+       fprintf(stderr, "spqr_ffactorize: SuiteSparseQR_C_qmult returned NULL\n");
+       for(k=0;k<*n;k++) handle->z[j++]=0.0;
+       continue;
+     }
      xx=dr->x;
      for(k=0;k<*n;k++) handle->z[j++]=xx[k];
      cholmod_l_free_dense(&dr, &handle->c);
@@ -207,7 +212,20 @@ void STDCALLBULL FC_FUNC_(spqr_fsolve,SPQR_FSOLVE)(cholmod **handle,int *n,doubl
   for(i=0;i<*n;i++) bb[i]=b[i];
 
   dr=SuiteSparseQR_C_qmult(SPQR_QTX,(*handle)->qr,db,&(*handle)->c);
+  if (!dr) {
+    fprintf(stderr, "spqr_fsolve: SuiteSparseQR_C_qmult returned NULL\n");
+    for(i=0;i<*n;i++) x[i]=0.0;
+    cholmod_l_free_dense(&db, &(*handle)->c);
+    return;
+  }
   dx=SuiteSparseQR_C_solve(SPQR_RETX_EQUALS_B,(*handle)->qr,dr,&(*handle)->c);
+  if (!dx) {
+    fprintf(stderr, "spqr_fsolve: SuiteSparseQR_C_solve returned NULL\n");
+    for(i=0;i<*n;i++) x[i]=0.0;
+    cholmod_l_free_dense(&dr, &(*handle)->c);
+    cholmod_l_free_dense(&db, &(*handle)->c);
+    return;
+  }
   xx=dx->x;
   for(i=0;i<*n;i++) x[i]=xx[i];
 
